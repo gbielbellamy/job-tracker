@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Application Log — Job Search Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="paper-texture"></div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-title">
+      <span class="eyebrow">Case files — open &amp; closed</span>
+      <h1>THE APPLICATION LOG</h1>
+      <p class="tagline">Every company you've applied to. Every reply you're owed.</p>
+    </div>
+    <button id="btnNew" class="btn btn-stamp" type="button">
+      <span class="stamp-plus">+</span> Open a new file
+    </button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Stats row -->
+  <section class="stats-row" aria-label="Summary statistics">
+    <div class="stat-card">
+      <span class="stat-label">Cases on file</span>
+      <span class="stat-value" id="statTotal">0</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Response rate</span>
+      <span class="stat-value" id="statResponse">0%</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Active leads</span>
+      <span class="stat-value" id="statActive">0</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Offers on table</span>
+      <span class="stat-value" id="statOffers">0</span>
+    </div>
+    <div class="stat-card stat-card--alert" id="statFollowupCard">
+      <span class="stat-label">Follow-ups due</span>
+      <span class="stat-value" id="statFollowup">0</span>
+    </div>
+  </section>
+
+  <!-- Toolbar -->
+  <section class="toolbar">
+    <div class="tabs" id="statusTabs" role="tablist" aria-label="Filter by status">
+      <button class="tab is-active" data-status="all" role="tab" aria-selected="true">All</button>
+      <button class="tab" data-status="Applied" role="tab" aria-selected="false">Applied</button>
+      <button class="tab" data-status="Interviewing" role="tab" aria-selected="false">Interviewing</button>
+      <button class="tab" data-status="Offer" role="tab" aria-selected="false">Offer</button>
+      <button class="tab" data-status="Rejected" role="tab" aria-selected="false">Rejected</button>
+      <button class="tab" data-status="Ghosted" role="tab" aria-selected="false">Ghosted</button>
+      <button class="tab" data-status="Withdrawn" role="tab" aria-selected="false">Withdrawn</button>
+    </div>
+
+    <div class="toolbar-controls">
+      <div class="search-wrap">
+        <input type="search" id="searchInput" placeholder="Search company or role…" aria-label="Search applications">
+      </div>
+      <select id="sortSelect" aria-label="Sort applications">
+        <option value="dateDesc">Newest first</option>
+        <option value="dateAsc">Oldest first</option>
+        <option value="companyAsc">Company A–Z</option>
+        <option value="followup">Follow-up due</option>
+      </select>
+      <div class="io-buttons">
+        <button id="btnExport" class="btn btn-ghost" type="button" title="Export all cases as JSON">Export</button>
+        <button id="btnImport" class="btn btn-ghost" type="button" title="Import cases from JSON">Import</button>
+        <input type="file" id="importFile" accept="application/json" hidden>
+      </div>
+    </div>
+  </section>
+
+  <!-- Table (desktop) -->
+  <section class="ledger-wrap">
+    <table class="ledger" id="ledgerTable">
+      <thead>
+        <tr>
+          <th class="col-company">Company / Role</th>
+          <th class="col-date">Applied</th>
+          <th class="col-status">Status</th>
+          <th class="col-followup">Follow-up</th>
+          <th class="col-link">Link</th>
+          <th class="col-actions" aria-label="Actions"></th>
+        </tr>
+      </thead>
+      <tbody id="ledgerBody">
+      </tbody>
+    </table>
+
+    <div class="empty-state" id="emptyState" hidden>
+      <p class="empty-title">No cases open.</p>
+      <p class="empty-body">Start your first file — log the company, the role, and the day you sent it in.</p>
+      <button class="btn btn-stamp" id="btnNewFromEmpty" type="button"><span class="stamp-plus">+</span> Open a new file</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer-note">
+  <p>Kept locally in this browser — nothing leaves your machine. Export a backup now and then.</p>
+</footer>
+
+<!-- Modal: Add / Edit -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <h2 id="modalTitle">Open a new file</h2>
+      <button class="modal-close" id="modalClose" type="button" aria-label="Close">×</button>
+    </div>
+
+    <form id="applicationForm" class="modal-form">
+      <input type="hidden" id="fieldId">
+
+      <div class="form-row">
+        <label for="fieldCompany">Company <span class="req">*</span></label>
+        <input type="text" id="fieldCompany" required placeholder="e.g. Acme Robotics">
+      </div>
+
+      <div class="form-row">
+        <label for="fieldPosition">Position <span class="req">*</span></label>
+        <input type="text" id="fieldPosition" required placeholder="e.g. Frontend Engineer">
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="fieldDate">Date applied <span class="req">*</span></label>
+          <input type="date" id="fieldDate" required>
+        </div>
+        <div class="form-row">
+          <label for="fieldStatus">Status</label>
+          <select id="fieldStatus">
+            <option value="Applied">Applied</option>
+            <option value="Interviewing">Interviewing</option>
+            <option value="Offer">Offer</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Ghosted">Ghosted</option>
+            <option value="Withdrawn">Withdrawn</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="fieldLocation">Location</label>
+          <input type="text" id="fieldLocation" placeholder="Remote / City">
+        </div>
+        <div class="form-row">
+          <label for="fieldSalary">Salary range</label>
+          <input type="text" id="fieldSalary" placeholder="e.g. $90k–110k">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="fieldLink">Job posting link</label>
+        <input type="url" id="fieldLink" placeholder="https://…">
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="fieldContact">Contact</label>
+          <input type="text" id="fieldContact" placeholder="Recruiter name / email">
+        </div>
+        <div class="form-row">
+          <label for="fieldFollowup">Follow up on</label>
+          <input type="date" id="fieldFollowup">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="fieldNotes">Notes</label>
+        <textarea id="fieldNotes" rows="3" placeholder="Interview prep, referral info, gut feeling…"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-text" id="btnDelete" hidden>Delete case</button>
+        <div class="modal-actions-right">
+          <button type="button" class="btn btn-ghost" id="btnCancel">Cancel</button>
+          <button type="submit" class="btn btn-stamp">Save file</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
