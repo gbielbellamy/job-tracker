@@ -90,7 +90,7 @@ All data lives in your browser's `localStorage`, scoped to the file/origin you o
 
 ## License
 
-Free to use, modify, and adapt for personal or portfolio use.
+Licensed under the **MIT License** — free to use, modify, and distribute (including forks and commercial use), as long as the original copyright notice and license text are kept in copies or substantial portions of the project. See [`LICENSE`](./LICENSE) for the full text.
 
 ---
 
