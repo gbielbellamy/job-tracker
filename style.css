@@ -438,6 +438,10 @@ button, input, select, textarea {
   z-index: 10;
 }
 
+.modal-overlay[hidden] {
+  display: none;
+}
+
 .modal {
   background: var(--color-bg-card);
   border: 1px solid var(--color-ink);
