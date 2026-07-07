@@ -7,6 +7,7 @@
   "use strict";
 
   const STORAGE_KEY = "applicationLog.cases.v1";
+  const SEEDED_KEY = "applicationLog.seeded.v1";
 
   /** @type {Array<Object>} */
   let cases = [];
@@ -435,6 +436,9 @@
 
   // ---------- Seed sample data on first run ----------
   function seedIfEmpty() {
+    const alreadySeeded = localStorage.getItem(SEEDED_KEY);
+    if (alreadySeeded) return;
+    localStorage.setItem(SEEDED_KEY, "true");
     if (cases.length > 0) return;
     const today = new Date();
     const iso = (daysAgo) => {
