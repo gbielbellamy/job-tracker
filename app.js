@@ -293,6 +293,27 @@
   }
 
   // ---------- Modal ----------
+  let formSnapshot = "";
+
+  function captureSnapshot() {
+    return JSON.stringify({
+      company: el.fields.company.value,
+      position: el.fields.position.value,
+      date: el.fields.date.value,
+      status: el.fields.status.value,
+      location: el.fields.location.value,
+      salary: el.fields.salary.value,
+      link: el.fields.link.value,
+      contact: el.fields.contact.value,
+      followup: el.fields.followup.value,
+      notes: el.fields.notes.value,
+    });
+  }
+
+  function hasUnsavedChanges() {
+    return captureSnapshot() !== formSnapshot;
+  }
+
   function openNewModal() {
     el.form.reset();
     el.fields.id.value = "";
@@ -301,6 +322,7 @@
     el.modalTitle.textContent = "Open a new file";
     el.btnDelete.hidden = true;
     el.modalOverlay.hidden = false;
+    formSnapshot = captureSnapshot();
     setTimeout(() => el.fields.company.focus(), 50);
   }
 
@@ -321,11 +343,20 @@
     el.modalTitle.textContent = `${c.company} — case file`;
     el.btnDelete.hidden = false;
     el.modalOverlay.hidden = false;
+    formSnapshot = captureSnapshot();
     setTimeout(() => el.fields.company.focus(), 50);
   }
 
   function closeModal() {
     el.modalOverlay.hidden = true;
+  }
+
+  function attemptCloseModal() {
+    if (hasUnsavedChanges()) {
+      const ok = confirm("You have unsaved changes on this case. Discard them?");
+      if (!ok) return;
+    }
+    closeModal();
   }
 
   // ---------- Import / Export ----------
@@ -381,13 +412,13 @@
   // ---------- Event wiring ----------
   el.btnNew.addEventListener("click", openNewModal);
   el.btnNewFromEmpty.addEventListener("click", openNewModal);
-  el.modalClose.addEventListener("click", closeModal);
-  el.btnCancel.addEventListener("click", closeModal);
+  el.modalClose.addEventListener("click", attemptCloseModal);
+  el.btnCancel.addEventListener("click", attemptCloseModal);
   el.modalOverlay.addEventListener("click", (e) => {
-    if (e.target === el.modalOverlay) closeModal();
+    if (e.target === el.modalOverlay) attemptCloseModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !el.modalOverlay.hidden) closeModal();
+    if (e.key === "Escape" && !el.modalOverlay.hidden) attemptCloseModal();
   });
 
   el.form.addEventListener("submit", (e) => {
